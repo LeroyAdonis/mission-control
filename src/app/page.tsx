@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { dataService, Agent, Activity } from '@/lib/data-service';
+import { useState, useEffect } from 'react';
+import { dataService, Agent, Activity, Project } from '@/lib/data-service';
 
 // Agent Card Component
 function AgentCard({ agent, onClick }: { agent: Agent; onClick: () => void }) {
@@ -239,13 +239,66 @@ function AgentDetailPanel({
   );
 }
 
+// Deployment Status Component
+function DeploymentStatus({ projects }: { projects: Project[] }) {
+  return (
+    <div className="bg-[#0d0d14] border border-gray-800 rounded-lg overflow-hidden">
+      <div className="p-3 border-b border-gray-800 bg-[#12121a]">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-amber-400">
+          &gt; Deployment Status
+        </h2>
+      </div>
+      <div className="divide-y divide-gray-800">
+        {projects.map((project, i) => (
+          <div key={i} className="p-3 hover:bg-[#1a1a25] transition-colors">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-300">{project.name}</span>
+              <span className={`text-xs px-2 py-0.5 rounded uppercase ${
+                project.status === 'active' ? 'bg-green-400/20 text-green-400' :
+                project.status === 'planning' ? 'bg-cyan-400/20 text-cyan-400' :
+                'bg-amber-400/20 text-amber-400'
+              }`}>
+                {project.status}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-cyan-400 to-amber-400 transition-all"
+                  style={{ width: `${project.progress}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-500 w-10">{project.progress}%</span>
+            </div>
+            {project.url && (
+              <a 
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-cyan-400 hover:text-cyan-300 mt-2 block truncate"
+              >
+                🔗 {project.url.replace('https://', '')}
+              </a>
+            )}
+            <div className="text-xs text-gray-600 mt-1">
+              Last deploy: {project.lastDeploy}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Navigation Component
 function Navigation({ 
   activeTab, 
-  onTabChange 
+  onTabChange,
+  currentTime
 }: { 
   activeTab: string; 
   onTabChange: (tab: string) => void;
+  currentTime: Date;
 }) {
   const tabs = ['Overview', 'Agents', 'Tasks', 'Activity'];
 
@@ -278,7 +331,7 @@ function Navigation({
 
       <div className="flex items-center gap-4">
         <div className="text-xs text-gray-500 font-mono">
-          {new Date().toLocaleTimeString('en-US', { hour12: false })}
+          {currentTime.toLocaleTimeString('en-US', { hour12: false })}
         </div>
         <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_#39ff14]" />
       </div>
@@ -290,15 +343,23 @@ function Navigation({
 export default function MissionControl() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
   
   const agents = dataService.getAgents();
   const activities = dataService.getActivities();
+  const projects = dataService.getProjects();
   const stats = dataService.getStats();
+
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] flex flex-col">
       {/* Navigation */}
-      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <Navigation activeTab={activeTab} onTabChange={setActiveTab} currentTime={currentTime} />
 
       {/* Stats Bar */}
       <StatsBar />
@@ -306,7 +367,7 @@ export default function MissionControl() {
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Agent Fleet Grid */}
             <div className="lg:col-span-2">
               <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-4">
@@ -324,8 +385,13 @@ export default function MissionControl() {
             </div>
 
             {/* Activity Feed */}
-            <div>
+            <div className="lg:col-span-1">
               <ActivityFeed activities={activities} />
+            </div>
+
+            {/* Deployment Status */}
+            <div className="lg:col-span-1">
+              <DeploymentStatus projects={projects} />
             </div>
           </div>
         )}
