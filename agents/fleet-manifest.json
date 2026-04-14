@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Frank",
+    "role": "General purpose assistant",
+    "emoji": "⚽",
+    "colorCode": "#0046AD",
+    "model": "github-copilot/gpt-4o"
+  },
+  {
+    "name": "Orchestrator",
+    "role": "Task breakdown and delegation",
+    "emoji": "🧩",
+    "colorCode": "#FFAF40",
+    "model": "github-copilot/gpt-4o"
+  },
+  {
+    "name": "Coder",
+    "role": "Code implementation specialist",
+    "emoji": "💻",
+    "colorCode": "#36B37E",
+    "model": "github-copilot/gpt-5.3-codex"
+  },
+  {
+    "name": "Designer",
+    "role": "UI/UX specialist",
+    "emoji": "🎨",
+    "colorCode": "#FF5733",
+    "model": "github-copilot/gpt-4o"
+  },
+  {
+    "name": "Planner",
+    "role": "Strategy and research",
+    "emoji": "🗺️",
+    "colorCode": "#8E44AD",
+    "model": "github-copilot/gpt-4o"
+  }
+]
